@@ -1,5 +1,3 @@
-package tesiSamuelePaone;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,9 +10,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import grafiColorati.ArcoColorato;
-import grafiColorati.Colore;
-import grafiColorati.GrafoNonOrientatoColorato;
+
 
 public final class MCCPAlgorithm {
 	

@@ -1,4 +1,4 @@
-package grafiColorati;
+
 
 public class Arco<N> {
 	private N origine, destinazione;

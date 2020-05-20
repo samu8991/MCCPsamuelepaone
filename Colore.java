@@ -1,4 +1,4 @@
-package grafiColorati;
+
 
 public class Colore {
 	private int colore;

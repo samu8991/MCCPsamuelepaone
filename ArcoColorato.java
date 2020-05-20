@@ -1,4 +1,4 @@
-package grafiColorati;
+
 
 public class ArcoColorato<N> extends Arco<N> {
 	private Colore colore;
