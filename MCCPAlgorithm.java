@@ -15,12 +15,13 @@ import java.util.StringTokenizer;
 public final class MCCPAlgorithm {
 	
 	private MCCPAlgorithm() {}
-	
+	static Calendar calendar;
+	static Calendar now;
 	public static int MCCP(GrafoNonOrientatoColorato<Integer> grafo) {
 		//---Implementazione timer---//
-		Calendar calendar = Calendar.getInstance();
-		Calendar now;
-		calendar.add(Calendar.SECOND, 1);
+
+		calendar = Calendar.getInstance();
+		calendar.add(Calendar.SECOND, 50);
 		boolean endloop = false;
 		//---fine timer---//
 		int k; //variabile di controllo del neighborhood 
@@ -39,7 +40,8 @@ public final class MCCPAlgorithm {
 			newSolution(S,BestS,C,grafo);
 			
 			//while1 interno
-			while(S.size() > BestS.size()) {
+			now = Calendar.getInstance();
+			while(S.size() > BestS.size() && calendar.getTimeInMillis()-now.getTimeInMillis() > 0) {
 				BestS = new HashSet<>(S);
 				MaxNeighborhood = C.size() - BestS.size();
 				newSolution(S,BestS,C,grafo);
@@ -47,7 +49,7 @@ public final class MCCPAlgorithm {
 			
 			k = 1;
 			//while2 interno
-			while(k < MaxNeighborhood) {
+			while(k < MaxNeighborhood && calendar.getTimeInMillis()-now.getTimeInMillis() > 0) {
 				HashSet<Colore> S_1 = new HashSet<>(S);
 				shake(S_1,S,k,C);
 				if(grafo.componentiConnesse(S_1) == 1)fix(S_1,grafo);
@@ -70,10 +72,11 @@ public final class MCCPAlgorithm {
 		
 		}// while principale
 		HashSet<Colore> diff = differenza(C,BestS);
-		System.out.println(diff+" insieme colori ottimo");
-		System.out.println(grafo.componentiConnesse(diff)+"Componenti connesse C - BestS");
-		System.out.println(grafo.componentiConnesse(BestS)+"Componenti connesse BestS");
-		System.out.println(grafo.trovaTaglio(BestS, diff));
+		System.out.println(diff+" insieme colori ottimo C - BestS");
+		System.out.println(grafo.componentiConnesse(diff)+" Componenti connesse C - BestS");
+		System.out.println(grafo.componentiConnesse(BestS)+" Componenti connesse BestS");
+		System.out.println(grafo.trovaTaglio(BestS));
+		System.out.println("//-----------------------------------------------//");
 		return C.size() - BestS.size(); //valore funzione obiettivo
 		
 	}//MCCP
@@ -83,7 +86,8 @@ public final class MCCPAlgorithm {
 		
 		boolean endloop = false;
 		HashSet<Colore> complementS;
-		while(!endloop) {
+		now = Calendar.getInstance();
+		while(!endloop && calendar.getTimeInMillis()-now.getTimeInMillis() > 0) {
 			
 			//trovo il complemento di S
 			complementS = complemento(tuttiColori,BestS);
@@ -93,7 +97,10 @@ public final class MCCPAlgorithm {
 			int compC = v[0];
 			Colore c = new Colore(v[1]);
 			//controllo che la soluzione raggiunta non sia connessa ovvero sia ammissibile
-			if(compC>1) BestS.add(c);
+			if(compC>1) {
+				BestS.add(c);
+				now = Calendar.getInstance();
+			}
 			else endloop = true;
 			
 		}//endloop
@@ -105,7 +112,8 @@ public final class MCCPAlgorithm {
 		HashSet<Colore> complementBestSMenoS = differenza(complementBestS,S);
 		HashSet<Colore> BestSMenoS;
 		int compC = grafo.numNodi();
-		while(compC > 1 && !complementBestSMenoS.isEmpty()) {
+		now = Calendar.getInstance();
+		while(compC > 1 && !complementBestSMenoS.isEmpty() && calendar.getTimeInMillis()-now.getTimeInMillis() > 0) {
 			
 			//trovo colore che massimizza il numero di componenti di complement(BestS)\S unito c
 			int [] vet = massimizzaComponentiConnesse(S,complementBestSMenoS,grafo);
@@ -114,12 +122,14 @@ public final class MCCPAlgorithm {
 			if(compC>1) {
 				S.add(c);
 				complementBestSMenoS = differenza(complementBestS,S);
+				now = Calendar.getInstance();
 			}
 			else break;
 		
 		}//while 1
 		compC = grafo.componentiConnesse(S);
-		while( compC > 1) {
+		now = Calendar.getInstance();
+		while( compC > 1 && calendar.getTimeInMillis()-now.getTimeInMillis() > 0) {
 		
 			BestSMenoS = differenza(BestS,S);
 			//trovo colore che massimizza il numero di componenti di BestS\S unito c
@@ -127,7 +137,10 @@ public final class MCCPAlgorithm {
 			int [] vet = massimizzaComponentiConnesse(S,BestSMenoS,grafo);
 			compC = vet[0];
 			Colore c = new Colore(vet[1]);
-			if(compC > 1)S.add(c);
+			if(compC > 1){
+				S.add(c);
+				now = Calendar.getInstance();
+			}
 			else break;
 			
 		}//while2
@@ -177,12 +190,16 @@ public final class MCCPAlgorithm {
 	}//fix
 	private static void localSearch(HashSet<Colore> S_1,HashSet<Colore> tuttiColori,GrafoNonOrientatoColorato<Integer> grafo) {
 		int compCMax = grafo.componentiConnesse(S_1);
-		while(compCMax>1) {
+		now = Calendar.getInstance();
+		while(compCMax>1 && calendar.getTimeInMillis()-now.getTimeInMillis() > 0) {
 			HashSet<Colore> complementS_1 = complemento(tuttiColori,S_1);
 			int [] vet = massimizzaComponentiConnesse(S_1,complementS_1,grafo);// stesso di sopra ma il numero di componenti connesse relativo
 			compCMax = vet[0];
 			Colore cMax = new Colore(vet[1]);//colore che massimizza il numero di componenti connesse di S_1 U color correntemente
-			if(compCMax > 1)S_1.add(cMax);
+			if(compCMax > 1){
+				S_1.add(cMax);
+				now = Calendar.getInstance();
+			}
 			else break;
 		}
 		return;
@@ -254,27 +271,13 @@ public final class MCCPAlgorithm {
 		int ris = 0;
 		int i = 1;
 		while(i<=10) {
-			File f = new File("/home/voidjocker/Documenti/Tesi/INSTANCES2/instance.n=50_d=0.5_l=12.5instNum="+i);
+			//Documenti/Tesi/INSTANCES2/instance.n=50_d=0.5_l=50instNum="+i
+			File f = new File("/home/voidjocker/Documenti/Tesi/INSTANCES2/instance.n=200_d=0.2_l=250instNum="+i);
 			GrafoNonOrientatoColorato<Integer> grafo = prelevaIstanze(f);
 			ris += MCCP(grafo);
 			i++;
 		}
 		System.out.println((double)ris/10);
-		/*GrafoNonOrientatoColorato<Integer> grafo = new GrafoNonOrientatoColorato<>();
-		for(int i = 1; i <=8;i++)grafo.insNodo(i);
-		grafo.insArco(new ArcoColorato<Integer>(1,2,new Colore(1)));
-		grafo.insArco(new ArcoColorato<Integer>(1,6,new Colore(3)));
-		grafo.insArco(new ArcoColorato<Integer>(1,4,new Colore(2)));
-		grafo.insArco(new ArcoColorato<Integer>(2,4,new Colore(3)));
-		grafo.insArco(new ArcoColorato<Integer>(2,3,new Colore(2)));
-		grafo.insArco(new ArcoColorato<Integer>(3,4,new Colore(1)));
-		grafo.insArco(new ArcoColorato<Integer>(3,8,new Colore(3)));
-		grafo.insArco(new ArcoColorato<Integer>(4,5,new Colore(2)));
-		grafo.insArco(new ArcoColorato<Integer>(7,5,new Colore(3)));
-		grafo.insArco(new ArcoColorato<Integer>(7,6,new Colore(1)));
-		grafo.insArco(new ArcoColorato<Integer>(7,8,new Colore(2)));
-		grafo.insArco(new ArcoColorato<Integer>(6,5,new Colore(2)));
-		grafo.insArco(new ArcoColorato<Integer>(8,5,new Colore(1)));
-		System.out.println(MCCP(grafo));*/
+
 	}//main
 }//MCCPAlgorithm
