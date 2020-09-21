@@ -1,11 +1,5 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 
 
 public class GrafoNonOrientatoColorato<N> extends GrafoNonOrientatoColoratoAstratto<N> {
@@ -132,11 +126,12 @@ public class GrafoNonOrientatoColorato<N> extends GrafoNonOrientatoColoratoAstra
 					N nodoCorrente = stack.pop();
 					if(!visitati.contains(nodoCorrente)) {
 						visitati.add(nodoCorrente);
-						for(ArcoColorato<N> ap: grafo.get(nodoCorrente))stack.push(ap.getDestinazione());
+						for(ArcoColorato<N> ap: grafo.get(nodoCorrente))
+							stack.push(ap.getDestinazione());
 					}
 				}
 				if(visitati.size()!= grafo.keySet().size())count++;
-				stack.clear();
+				//stack.clear();
 			}
 		}//for
 		return count;
@@ -153,53 +148,85 @@ public class GrafoNonOrientatoColorato<N> extends GrafoNonOrientatoColoratoAstra
 		return tmp.getComponenti();
 		}//componentiConnesse
 	
-	public List<ArcoColorato<N>> trovaTaglio(HashSet<Colore> BestS, HashSet<Colore> complementBestS){
+	public List<ArcoColorato<N>> trovaTaglio(HashSet<Colore> BestS) {
+		GrafoNonOrientatoColorato<N> tmp = new GrafoNonOrientatoColorato<>();
+		for(ArcoColorato<N> ac : listaArchi) {
+			tmp.insNodo((N) ac.getOrigine());
+			tmp.insNodo((N) ac.getDestinazione());
+			if(BestS.contains(ac.getColore()))
+				tmp.insArco(ac);
+		}
 		List<ArcoColorato<N>> l = new ArrayList<ArcoColorato<N>>();
 		HashSet<N> W = new HashSet<>();
-		HashSet<N> WSegnato = new HashSet<>();
-		for(ArcoColorato<N> ac:listaArchi) {
-			if(BestS.contains(ac.getColore())) {
-				W.add(ac.getOrigine());
-				W.add(ac.getDestinazione());
+		HashSet<N> Wsegnato = new HashSet<>();
+		LinkedList<N> stack = new LinkedList<>();
+		N [] lista = (N[]) grafo.keySet().toArray();
+		stack.push(lista[0]);
+		while (!stack.isEmpty()) {
+			N nodoCorrente = stack.pop();
+			if (!W.contains(nodoCorrente)) {
+				W.add(nodoCorrente);
+				Iterator<ArcoColorato<N>> it = tmp.adiacenti(nodoCorrente);
+				while (it.hasNext()) {
+					ArcoColorato<N> ap = it.next();
+					stack.push(ap.getDestinazione());
+				}
 			}
 		}
-		for (N n: grafo.keySet()) 
-			if(!W.contains(n))
-				WSegnato.add(n);
-		for(Colore c: complementBestS) {
-			for(ArcoColorato<N> ac:listaArchi) {
-				if(W.contains(ac.getOrigine()) && WSegnato.contains(ac.getDestinazione()))
-					l.add(ac);
-			}
+		for (int i = 0; i < numNodi(); i++){
+			if (!W.contains(i))
+				Wsegnato.add((N) new Integer(i));
 		}
+		for(ArcoColorato<N> arco:listaArchi) {
+			if (W.contains(arco.getOrigine()) && Wsegnato.contains(arco.getDestinazione()) || (W.contains(arco.getDestinazione()) && Wsegnato.contains(arco.getOrigine())))
+				l.add(arco);
+		}
+
 		return l;
 		
 	}
 	public Grafo<N> factory() { return new GrafoNonOrientatoColorato<N>(); }
-	
-	public static void main(String[]args) {
+
+	public static GrafoNonOrientatoColorato<Integer> prelevaIstanze(File f){
 		GrafoNonOrientatoColorato<Integer> grafo = new GrafoNonOrientatoColorato<>();
-		HashSet<Colore> S = new HashSet<Colore>();
-		for(int i = 0; i < 10; i++) grafo.insNodo(i);
-		
-		grafo.insArco(new ArcoColorato<Integer>(0,1,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(0,2,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(1,3,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(1,2,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(1,5,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(2,3,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(5,6,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(5,4,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(6,7,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(7,8,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(7,9,new Colore((int) (Math.random()*10))));
-		grafo.insArco(new ArcoColorato<Integer>(8,9,new Colore((int) (Math.random()*10))));
-		
-		//S.add(new Colore(3));
-		
-		System.out.println(grafo);
-		System.out.println(grafo.listaArchi);
-		System.out.println(grafo.listaArchi.size());
+		try {
+			InputStream is = new FileInputStream(f);
+			BufferedReader br = new BufferedReader(
+					new InputStreamReader(is));
+			boolean endloop = true;
+			int i = 1;
+			while(endloop) {
+				String stringa = br.readLine();
+				if(i<=2) {
+					i++;
+					continue;
+				}
+				else if(stringa == null)endloop = false;
+				else {
+					StringTokenizer st = new StringTokenizer(stringa);
+					int nodoSorgente = Integer.parseInt(st.nextToken());
+					int nodoDestinazione= Integer.parseInt(st.nextToken());
+					Colore colore = new Colore(Integer.parseInt(st.nextToken()));
+					grafo.insNodo(nodoSorgente);grafo.insNodo(nodoDestinazione);
+					ArcoColorato<Integer> ac = new ArcoColorato<>(nodoSorgente,nodoDestinazione,colore);
+					grafo.insArco(ac);
+				}
+			}
+			br.close();
+		}catch(IOException e ) {
+			System.out.println("Errore nella lettura del file");
+		}
+		return grafo;
+	}
+	public static void main(String[]args) {
+		File f = new File("/home/voidjocker/file");
+		GrafoNonOrientatoColorato<Integer> grafo = prelevaIstanze(f);
+		/*HashSet<Colore> BestS = new HashSet<Colore>();
+		BestS.add(new Colore(2));
+		BestS.add(new Colore(3));
+		System.out.println(grafo.trovaTaglio(BestS));*/
+		System.out.println(grafo.getComponenti());
+
 	}
 	
 }
