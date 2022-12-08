@@ -1,4 +1,4 @@
-# MCCP Algorithm
+#MCCP Algorithm
 La classe MCCPalgorithm implementa una euristica in grado di trovare una soluzione al problema Minimum Colored Cut.
 La condizione di stop dell'algoritmo è un tempo determinato empiricamente in base alla dimensione delle istanze che sono caratterizzate da una tripla di valori:
   - numero di nodi
